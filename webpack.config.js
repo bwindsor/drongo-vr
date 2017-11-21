@@ -48,7 +48,8 @@ module.exports = {
     externals: {
         "react": "React",
         "react-dom": "ReactDOM",
-        "aframe" : "AFRAME"
+        "aframe" : "AFRAME",
+        "gsap": "gsap"
     },
 
     devServer: {
