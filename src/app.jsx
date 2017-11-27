@@ -58,7 +58,7 @@ export default class App extends React.Component {
   }
 
   stepDrongoState(state, limits) {
-    let rate = 10
+    let rate = 30
     let { x: p, d2x: d2p } = this.stepAccel(state.p, state.d2p, rate, limits.p)
     let rotRate = 15
     let { x: r, d2x: d2r } = this.stepAccel(state.r, state.d2r, rotRate, limits.r)
