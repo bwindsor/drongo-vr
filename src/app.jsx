@@ -114,7 +114,7 @@ export default class App extends React.Component {
               geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
               material="color: black; shader: flat">
             </Entity>
-            <Entity text={`value:${this.getCount()};align: left;color:black;font:exo2bold`} position="0.1 -0.3 -0.5">
+            <Entity text={`value:${this.getCount()};align:center;color:black;font:exo2bold`} position="0 -0.1 -0.5">
             </Entity>
           </Entity>
         </Entity>
