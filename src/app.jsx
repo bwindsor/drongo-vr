@@ -9,12 +9,27 @@ export default class App extends React.Component {
   constructor(props) {
     super(props)
     this.t = 0;    // Tween variable
-    this.n = 100;  // Number of DrongOs
+    this.n = 50;  // Number of DrongOs
+
+    let pMax = 200 // Maximum distance
+    let rMax = 300 // Maximum rotation rate
+    this.limits = [
+      {
+        p: [-pMax, pMax],
+        r: [-rMax, rMax]
+      }, {
+        p: [5, pMax],
+        r: [-rMax, rMax]
+      }, {
+        p: [-pMax, pMax],
+        r: [-rMax, rMax]
+      }
+    ]
 
     let drongoStates = Array.apply(null, Array(this.n)).map(x =>
       [0, 0, 0].map(y => {
         return {
-          p: Math.random()+50,
+          p: Math.random() + 50,
           d2p: 0,
           r: 0,
           d2r: 0
@@ -28,23 +43,27 @@ export default class App extends React.Component {
     }
   }
 
-  stepDrongoState(state) {
-    let a = state.d2p
-    let p = state.p
-    let rate = 1
-    let plim = 200
-    a = a + (Math.random() - 0.5) * rate
-    if (p > plim) {
-      a = -Math.abs(a)
-    } else if (p < -plim) {
-      a = Math.abs(a)
+  stepAccel(x, d2x, rate, limits) {
+    d2x = d2x + (Math.random() - 0.5) * rate
+    if (x > limits[1]) {
+      d2x = -Math.abs(d2x)
+    } else if (x < limits[0]) {
+      d2x = Math.abs(d2x)
     }
-    p = p + 0.5 * a * (0.05) ** 2  //s = ut + 0.5at^2
+    x = x + 0.5 * d2x * (0.05) ** 2  //s = ut + 0.5at^2
+    return { x, d2x }
+  }
+
+  stepDrongoState(state, limits) {
+    let rate = 100
+    let { x: p, d2x: d2p } = this.stepAccel(state.p, state.d2p, rate, limits.p)
+    let rotRate = 15
+    let { x: r, d2x: d2r } = this.stepAccel(state.r, state.d2r, rotRate, limits.r)
     return {
-      p: p,
-      d2p: a,
-      r: state.r,
-      d2r: state.d2r
+      p,
+      d2p,
+      r,
+      d2r
     }
   }
 
@@ -53,7 +72,7 @@ export default class App extends React.Component {
       t: 1, repeat: -1, yoyo: true, onUpdate: () => this.setState(prevState => {
         return {
           t: this.t,
-          drongoStates: prevState.drongoStates.map(d => d.map(dd => this.stepDrongoState(dd))) 
+          drongoStates: prevState.drongoStates.map(d => d.map((dd, i) => this.stepDrongoState(dd, this.limits[i])))
         }
       })
     })
