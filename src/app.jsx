@@ -10,43 +10,42 @@ export default class App extends React.Component {
     super(props)
     this.t = 0;    // Tween variable
     this.n = 100;  // Number of DrongOs
-    // Acceleration (initialise to random numbers between 0 and 1)
-    p = {
-      x: {
-        p: 0,
-        a: 0
-      }
-    }
 
-    this.p = Array.apply(null, Array(this.n)).map(x => { return
-      [0,0,0].map(y => { return {
-        p: Math.random(),
-        a: 0
-      }})
-    })
-
-    this.d2p = Array.apply(null, Array(this.n)).map(x => [0, 0, 0].map(y => Math.random()))
-    // Rotational acceleration (initialise to zeros)
-    this.d2r = Array.apply(null, Array(this.n)).map(x => [0, 0, 0])
-    // Position
-    this.p = this.d2p.map(x => x.map(y => 50))
-    // Rotation
-    this.r = this.d2r.map(x => [0,90,0])
+    let drongoStates = Array.apply(null, Array(this.n)).map(x =>
+      [0, 0, 0].map(y => {
+        return {
+          p: Math.random()+50,
+          d2p: 0,
+          r: 0,
+          d2r: 0
+        }
+      })
+    )
 
     this.state = {
       t: this.t,  // Tween
-      d2p: this.d2p,
-      p: this.p,
-      d2r: this.d2r,
-      r: this.r
+      drongoStates: drongoStates
     }
   }
 
-  stepPosition(p, a, da, plim) {
-    a = a + da*(Math.random()-0.5)*rate
-    if (p > plim) { a = -a }
-    p = p + 0.5*a*(0.05)**2  //s = ut + 0.5at^2
-    return {p, a}
+  stepDrongoState(state) {
+    let a = state.d2p
+    let p = state.p
+    let rate = 1
+    let plim = 200
+    a = a + (Math.random() - 0.5) * rate
+    if (p > plim) {
+      a = -Math.abs(a)
+    } else if (p < -plim) {
+      a = Math.abs(a)
+    }
+    p = p + 0.5 * a * (0.05) ** 2  //s = ut + 0.5at^2
+    return {
+      p: p,
+      d2p: a,
+      r: state.r,
+      d2r: state.d2r
+    }
   }
 
   componentDidMount() {
@@ -54,11 +53,7 @@ export default class App extends React.Component {
       t: 1, repeat: -1, yoyo: true, onUpdate: () => this.setState(prevState => {
         return {
           t: this.t,
-          d2p: prevState.d2p.map((aa, i) => aa.map((aaa, j) => aaa + ((prevState.p[i][j] > 300) ? (-prevState.p[i][j]) : ((Math.random() - 0.5) * 8)))),
-          p: prevState.p.map((rr, i) => rr.map((rrr, j) =>
-            rrr + 0.5 * prevState.d2p[i][j] * (0.05 * 0.05)
-          )),
-          d2r: 
+          drongoStates: prevState.drongoStates.map(d => d.map(dd => this.stepDrongoState(dd))) 
         }
       })
     })
@@ -79,15 +74,14 @@ export default class App extends React.Component {
         <a-circle position="0 0 0" rotation="-90 0 0" color="#86DC2B" radius="2000"></a-circle>
         <a-sky color="rgb(175,227,254)"></a-sky>
         {
-          this.state.p.map((p, i) => {
-            let r = this.state.r[i]
+          this.state.drongoStates.map((p, i) => {
             return <a-image
-             key={`image-${i}`}
+              key={`image-${i}`}
               drongo-cursor-listener
-              position={`${p[0]} ${p[1]} ${p[2]}`}
+              position={`${p[0].p} ${p[1].p} ${p[2].p}`}
               height="10"
               width="10"
-              rotation={`${r[0]} ${r[1]} ${r[2]}`} src="assets/DrongOBird.png"></a-image>
+              rotation={`${p[0].r} ${p[1].r} ${p[2].r}`} src="assets/DrongOBird.png"></a-image>
           })
         }
       </a-scene>
