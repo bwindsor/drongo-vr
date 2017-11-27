@@ -26,16 +26,19 @@ export default class App extends React.Component {
       }
     ]
 
-    let drongoStates = Array.apply(null, Array(this.n)).map(x =>
-      [0, 0, 0].map(y => {
-        return {
-          p: Math.random() + 50,
-          d2p: 0,
-          r: 0,
-          d2r: 0
-        }
-      })
-    )
+    let drongoStates = Array.apply(null, Array(this.n)).map(x => {
+      return {
+        visible: true,
+        xyz: [0, 0, 0].map(y => {
+          return {
+            p: Math.random() + 50,
+            d2p: 0,
+            r: 0,
+            d2r: 0
+          }
+        })
+      }
+    })
 
     this.state = {
       t: this.t,  // Tween
@@ -55,11 +58,12 @@ export default class App extends React.Component {
   }
 
   stepDrongoState(state, limits) {
-    let rate = 100
+    let rate = 10
     let { x: p, d2x: d2p } = this.stepAccel(state.p, state.d2p, rate, limits.p)
     let rotRate = 15
     let { x: r, d2x: d2r } = this.stepAccel(state.r, state.d2r, rotRate, limits.r)
     return {
+      ...state,
       p,
       d2p,
       r,
@@ -72,38 +76,65 @@ export default class App extends React.Component {
       t: 1, repeat: -1, yoyo: true, onUpdate: () => this.setState(prevState => {
         return {
           t: this.t,
-          drongoStates: prevState.drongoStates.map(d => d.map((dd, i) => this.stepDrongoState(dd, this.limits[i])))
+          drongoStates: prevState.drongoStates.map(d => {
+            return {
+              ...d,
+              xyz: d.xyz.map((dd, i) => this.stepDrongoState(dd, this.limits[i]))
+            }
+          })
         }
       })
     })
   }
 
+  getCount() {
+    return this.state.drongoStates.filter(s => s.visible).length
+  }
+
+  handleClick(drongoIndex) {
+    this.setState(prevState => {
+      let newStates = prevState.drongoStates
+      newStates[drongoIndex] = {
+        ...prevState.drongoStates[drongoIndex],
+        visible: false
+      }
+      return {
+        drongoStates: newStates
+      }
+    })
+  }
+
   render() {
     return (
-      <a-scene>
-        <a-entity position="0 0 0">
-          <a-camera look-controls-enabled wasd-controls-enabled>
-            <a-entity cursor="fuse: true; fuseTimeout: 100"
+      <Scene>
+        <Entity position="0 0 0">
+          <Entity primitive="a-camera" look-controls-enabled wasd-controls-enabled>
+            <Entity cursor="fuse: true; fuseTimeout: 100"
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
               material="color: black; shader: flat">
-            </a-entity>
-          </a-camera>
-        </a-entity>
-        <a-circle position="0 0 0" rotation="-90 0 0" color="#86DC2B" radius="2000"></a-circle>
-        <a-sky color="rgb(175,227,254)"></a-sky>
+            </Entity>
+            <Entity text={`value:${this.getCount()};align: left;color:black;font:exo2bold`} position="0.1 -0.3 -0.5">
+            </Entity>
+          </Entity>
+        </Entity>
+        <Entity primitive="a-circle" position="0 0 0" rotation="-90 0 0" color="#86DC2B" radius="2000"></ Entity>
+        <Entity primitive="a-sky" color="rgb(175,227,254)"></Entity>
         {
-          this.state.drongoStates.map((p, i) => {
-            return <a-image
+          this.state.drongoStates.map((s, i) => {
+            if (!s.visible) { return null }
+            let p = s.xyz
+            return  <Entity primitive="a-image"
               key={`image-${i}`}
+              events={{ click: () => this.handleClick(i) }}
               drongo-cursor-listener
               position={`${p[0].p} ${p[1].p} ${p[2].p}`}
               height="10"
               width="10"
-              rotation={`${p[0].r} ${p[1].r} ${p[2].r}`} src="assets/DrongOBird.png"></a-image>
+              rotation={`${p[0].r} ${p[1].r} ${p[2].r}`} src="assets/DrongOBird.png"></Entity>
           })
         }
-      </a-scene>
+      </Scene>
     );
   }
 }
