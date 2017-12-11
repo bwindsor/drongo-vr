@@ -9,7 +9,12 @@ export default class App extends React.Component {
   constructor(props) {
     super(props)
     this.t = 0;    // Tween variable
-    this.n = 50;  // Number of DrongOs
+    this.n = 25;  // Number of DrongOs
+    this.resetWaitPeriod = 5000; // Time to wait on completion before reset
+    this.initialWaitPeriod = 4000; // Time to wait before the game starts
+    this.resetTimeout = null;
+    this.initialTimeout = null;
+    this.timerInterval = null;
 
     let pMax = 200 // Maximum distance
     let rMax = 300 // Maximum rotation rate
@@ -26,24 +31,38 @@ export default class App extends React.Component {
       }
     ]
 
+    this.state = this.getInitialState()
+  }
+
+  getInitialState() {
     let drongoStates = Array.apply(null, Array(this.n)).map(x => {
       return {
         visible: true,
-        xyz: [0, 0, 0].map(y => {
+        xyz: [0, 0, 0].map((y,i) => {
           return {
-            p: Math.random() + 50,
+            p: i==1 ? Math.random()*100+5 : (Math.random()-0.5)*100,
             d2p: 0,
-            r: 0,
+            r: Math.random()*360,
             d2r: 0
           }
         })
       }
     })
-
-    this.state = {
-      t: this.t,  // Tween
-      drongoStates: drongoStates
+    return {
+      t: 0,
+      drongoStates: drongoStates,
+      elapsedTime: -this.initialWaitPeriod/1000,
+      isPlaying: false
     }
+  }
+
+  startTimer() {
+    this.timerInterval = setInterval(() => this.setState(prevState => {
+      return { elapsedTime: prevState.elapsedTime + 0.1 }
+    }), 100)
+  }
+  stopTimer() {
+    clearInterval(this.timerInterval)
   }
 
   stepAccel(x, d2x, rate, limits) {
@@ -72,6 +91,16 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
+    this.waitForGame()
+  }
+
+  waitForGame() {
+    this.initialTimeout = setTimeout(() => this.startGame(), this.initialWaitPeriod)
+    this.startTimer()
+  }
+
+  startGame() {
+    this.setState({ isPlaying: true })
     TweenMax.to(this, 3, {
       t: 1, repeat: -1, yoyo: true, onUpdate: () => this.setState(prevState => {
         return {
@@ -86,12 +115,23 @@ export default class App extends React.Component {
       })
     })
   }
+  stopGame() {
+    this.stopTimer()
+    this.setState({ isPlaying: false })
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.resetTimeout)
+    clearTimeout(this.initialTimeout)
+    this.stopGame()
+  }
 
   getCount() {
     return this.state.drongoStates.filter(s => s.visible).length
   }
 
   handleClick(drongoIndex) {
+    if (!this.state.isPlaying) { return }
     this.setState(prevState => {
       let newStates = prevState.drongoStates
       newStates[drongoIndex] = {
@@ -102,6 +142,13 @@ export default class App extends React.Component {
         drongoStates: newStates
       }
     })
+    if (this.getCount() == 0) {
+      this.stopGame()
+      this.resetTimeout = setTimeout(() => {
+        this.setState(this.getInitialState())
+        this.waitForGame()
+      }, this.resetWaitPeriod)
+    }
   }
 
   render() {
@@ -116,6 +163,8 @@ export default class App extends React.Component {
             </Entity>
             <Entity text={`value:${this.getCount()};align:center;color:black;font:exo2bold`} position="0 -0.1 -0.5">
             </Entity>
+            <Entity text={`value:${this.state.elapsedTime.toFixed(this.state.elapsedTime >= 0 ? 1 : 0)}s;align:center;color:black;font:exo2bold`} position="0 -0.2 -0.5">
+            </Entity>
           </Entity>
         </Entity>
         <Entity primitive="a-circle" position="0 0 0" rotation="-90 0 0" color="#86DC2B" radius="2000"></ Entity>
@@ -124,7 +173,7 @@ export default class App extends React.Component {
           this.state.drongoStates.map((s, i) => {
             if (!s.visible) { return null }
             let p = s.xyz
-            return  <Entity primitive="a-image"
+            return <Entity primitive="a-image"
               key={`image-${i}`}
               events={{ click: () => this.handleClick(i) }}
               drongo-cursor-listener
