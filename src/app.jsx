@@ -15,6 +15,7 @@ export default class App extends React.Component {
     this.resetTimeout = null;
     this.initialTimeout = null;
     this.timerInterval = null;
+    this.cursorRef = null;
 
     let pMax = 200 // Maximum distance
     let rMax = 300 // Maximum rotation rate
@@ -150,16 +151,35 @@ export default class App extends React.Component {
       }, this.resetWaitPeriod)
     }
   }
+  
+  // TODO - REPLACE THESE BY PUTTING THEM IN INIT FUNCTION OF A DRONGO OBJECT
+  handleCursorRef(node) {
+    if (!node) {return}
+    this.cursorRef = node.el;
+  }
+
+  handleDrongoRef(node) {
+    if (!node) { return }
+    node.el.addEventListener('model-loaded', () => {
+      this.cursorRef.components.raycaster.refreshObjects();
+    });
+  }
 
   render() {
     return (
       <Scene>
+        <a-assets>
+          <a-asset-item id="drongo-obj" src="assets/drongo.obj"></a-asset-item>
+          <a-asset-item id="drongo-mtl" src="assets/drongo.mtl"></a-asset-item>
+        </a-assets>
         <Entity position="0 0 0">
           <Entity primitive="a-camera" look-controls-enabled wasd-controls-enabled>
             <Entity cursor="fuse: true; fuseTimeout: 100"
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-              material="color: black; shader: flat">
+              material="color: black; shader: flat"
+              ref={node => this.handleCursorRef(node)}
+              >
             </Entity>
             <Entity text={`value:${this.getCount()};align:center;color:black;font:exo2bold`} position="0 -0.1 -0.5">
             </Entity>
@@ -173,14 +193,17 @@ export default class App extends React.Component {
           this.state.drongoStates.map((s, i) => {
             if (!s.visible) { return null }
             let p = s.xyz
-            return <Entity primitive="a-image"
-              key={`image-${i}`}
-              events={{ click: () => this.handleClick(i) }}
-              drongo-cursor-listener
+            return <Entity
+              key={`model-${i}`}
+              ref={node => this.handleDrongoRef(node)}
+              events={{
+                click: () => this.handleClick(i),
+              }}
               position={`${p[0].p} ${p[1].p} ${p[2].p}`}
-              height="10"
-              width="10"
-              rotation={`${p[0].r} ${p[1].r} ${p[2].r}`} src="assets/DrongOBird.png"></Entity>
+              rotation={`${p[0].r} ${p[1].r} ${p[2].r}`}
+              obj-model="obj:#drongo-obj; mtl:#drongo-mtl"
+              scale="0.2 0.2 0.2"
+              ></Entity>
           })
         }
       </Scene>
