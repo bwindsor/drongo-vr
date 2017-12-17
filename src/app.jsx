@@ -167,7 +167,7 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <Scene stats>
+      <Scene>
         <a-assets>
           <a-asset-item id="drongo-obj" src="assets/drongo.obj"></a-asset-item>
           <a-asset-item id="drongo-mtl" src="assets/drongo.mtl"></a-asset-item>
