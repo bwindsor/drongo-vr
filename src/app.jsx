@@ -155,19 +155,19 @@ export default class App extends React.Component {
   // TODO - REPLACE THESE BY PUTTING THEM IN INIT FUNCTION OF A DRONGO OBJECT
   handleCursorRef(node) {
     if (!node) {return}
-    this.cursorRef = node.el;
+    this.cursorRef = node;
   }
 
   handleDrongoRef(node) {
     if (!node) { return }
-    node.el.addEventListener('model-loaded', () => {
+    node.addEventListener('model-loaded', () => {
       this.cursorRef.components.raycaster.refreshObjects();
     });
   }
 
   render() {
     return (
-      <Scene>
+      <Scene stats>
         <a-assets>
           <a-asset-item id="drongo-obj" src="assets/drongo.obj"></a-asset-item>
           <a-asset-item id="drongo-mtl" src="assets/drongo.mtl"></a-asset-item>
@@ -178,7 +178,7 @@ export default class App extends React.Component {
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
               material="color: black; shader: flat"
-              ref={node => this.handleCursorRef(node)}
+              _ref={node => this.handleCursorRef(node)}
               >
             </Entity>
             <Entity text={`value:${this.getCount()};align:center;color:black;font:exo2bold`} position="0 -0.1 -0.5">
@@ -195,7 +195,7 @@ export default class App extends React.Component {
             let p = s.xyz
             return <Entity
               key={`model-${i}`}
-              ref={node => this.handleDrongoRef(node)}
+              _ref={node => this.handleDrongoRef(node)}
               events={{
                 click: () => this.handleClick(i),
               }}
