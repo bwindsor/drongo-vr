@@ -13,7 +13,6 @@ export default class App extends React.Component {
     this.resetWaitPeriod = 5000; // Time to wait on completion before reset
     this.initialWaitPeriod = 4000; // Time to wait before the game starts
     this.resetTimeout = null;
-    this.initialTimeout = null;
     this.timerInterval = null;
     this.cursorRef = null;
 
@@ -52,18 +51,10 @@ export default class App extends React.Component {
     return {
       t: 0,
       drongoStates: drongoStates,
-      elapsedTime: -this.initialWaitPeriod/1000,
-      isPlaying: false
+      startTime: new Date().getTime(),
+      isPlaying: false,
+      finalTime: null
     }
-  }
-
-  startTimer() {
-    this.timerInterval = setInterval(() => this.setState(prevState => {
-      return { elapsedTime: prevState.elapsedTime + 0.1 }
-    }), 100)
-  }
-  stopTimer() {
-    clearInterval(this.timerInterval)
   }
 
   stepAccel(x, d2x, rate, limits) {
@@ -92,12 +83,7 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    this.waitForGame()
-  }
-
-  waitForGame() {
-    this.initialTimeout = setTimeout(() => this.startGame(), this.initialWaitPeriod)
-    this.startTimer()
+    this.startGame()
   }
 
   startGame() {
@@ -117,13 +103,11 @@ export default class App extends React.Component {
     })
   }
   stopGame() {
-    this.stopTimer()
-    this.setState({ isPlaying: false })
+    this.setState({ finalTime: this.getElapsedTime(), isPlaying: false })
   }
 
   componentWillUnmount() {
     clearTimeout(this.resetTimeout)
-    clearTimeout(this.initialTimeout)
     this.stopGame()
   }
 
@@ -132,7 +116,7 @@ export default class App extends React.Component {
   }
 
   handleClick(drongoIndex) {
-    if (!this.state.isPlaying || this.state.elapsedTime < 0) { return }
+    if (!this.state.isPlaying || this.getElapsedTime() < 0) { return }
     this.setState(prevState => {
       let newStates = prevState.drongoStates
       newStates[drongoIndex] = {
@@ -144,14 +128,17 @@ export default class App extends React.Component {
       }
     })
     if (this.getCount() == 0) {
-      this.stopGame()
-      this.resetTimeout = setTimeout(() => {
-        this.setState(this.getInitialState())
-        this.waitForGame()
-      }, this.resetWaitPeriod)
+      clearTimeout(this.resetTimeout);
+      this.resetTimeout = setTimeout(() => this.resetGame(), this.resetWaitPeriod);
     }
   }
   
+  resetGame() {
+      this.stopGame()
+      this.setState(this.getInitialState())
+      this.startGame();
+  }
+
   // TODO - REPLACE THESE BY PUTTING THEM IN INIT FUNCTION OF A DRONGO OBJECT
   handleCursorRef(node) {
     if (!node) {return}
@@ -165,7 +152,12 @@ export default class App extends React.Component {
     });
   }
 
+  getElapsedTime() {
+   return (new Date().getTime() - this.state.startTime - this.initialWaitPeriod) / 1000;
+  }
+
   render() {
+    let elapsedTime = this.finalTime || this.getElapsedTime();
     return (
       <Scene>
         <a-assets>
@@ -175,19 +167,30 @@ export default class App extends React.Component {
         <Entity position="0 0 0">
           <Entity primitive="a-camera" look-controls-enabled wasd-controls-enabled>
             <Entity cursor="fuse: true; fuseTimeout: 100"
+              raycaster="objects: .drongo"
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
               material="color: black; shader: flat"
               _ref={node => this.handleCursorRef(node)}
               >
             </Entity>
+            <Entity cursor="fuse: true; fuseTimeout: 3000"
+              raycaster="objects: .reset-button"
+              >
+            </Entity>
             <Entity text={`value:${this.getCount()};align:center;color:black;font:exo2bold`} position="0 -0.1 -0.5">
             </Entity>
-            <Entity text={`value:${this.state.elapsedTime.toFixed(this.state.elapsedTime >= 0 ? 1 : 0)}s;align:center;color:black;font:exo2bold`} position="0 -0.2 -0.5">
+            <Entity text={`value:${elapsedTime.toFixed(elapsedTime >= 0 ? 1 : 0)}s;align:center;color:black;font:exo2bold`} position="0 -0.2 -0.5">
             </Entity>
           </Entity>
         </Entity>
         <Entity primitive="a-circle" position="0 0 0" rotation="-90 0 0" color="#86DC2B" radius="2000"></ Entity>
+        <Entity primitive="a-circle" position="0 0.01 0" rotation="-90 0 0" color="red" radius="1"
+          className="reset-button"
+          events={{
+            click: () => this.resetGame()
+          }}
+        ></ Entity>
         <Entity primitive="a-sky" color="rgb(175,227,254)"></Entity>
         {
           this.state.drongoStates.map((s, i) => {
@@ -195,6 +198,7 @@ export default class App extends React.Component {
             let p = s.xyz
             return <Entity
               key={`model-${i}`}
+              className="drongo"
               _ref={node => this.handleDrongoRef(node)}
               events={{
                 click: () => this.handleClick(i),
