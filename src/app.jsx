@@ -163,7 +163,7 @@ export default class App extends React.Component {
   render() {
     let elapsedTime = this.finalTime || this.getElapsedTime();
     return (
-      <Scene stats>
+      <Scene>
         <a-assets>
           <a-asset-item id="drongo-obj" src="assets/drongo.obj"></a-asset-item>
           <a-asset-item id="drongo-mtl" src="assets/drongo.mtl"></a-asset-item>
@@ -197,7 +197,7 @@ export default class App extends React.Component {
           position={`${this.treeRadius*Math.cos(i/this.numTrees*2*Math.PI)} 0 ${this.treeRadius*Math.sin(i/this.numTrees*2*Math.PI) + 10}`}
           scale={`1 ${this.treeHeightScale} 1`}
           ></Entity>)}
-        <Entity primitive="a-plane" position="0 0 0" rotation="-90 0 0" material="src: #grass-texture; repeat: 10 10" height="2000" width="2000"></ Entity>
+        <Entity primitive="a-plane" position="0 0 0" rotation="-90 0 0" material="src: #grass-texture; repeat: 10 10n" height="2000" width="2000"></ Entity>
         <Entity primitive="a-circle" position="0 0.01 0" rotation="-90 0 0" color="red" radius="1"
           className="reset-button"
           events={{
