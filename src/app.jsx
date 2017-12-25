@@ -12,21 +12,28 @@ export default class App extends React.Component {
     this.n = 25;  // Number of DrongOs
     this.resetWaitPeriod = 5000; // Time to wait on completion before reset
     this.initialWaitPeriod = 4000; // Time to wait before the game starts
+    this.pMax = 50 // Maximum distance
     this.resetTimeout = null;
     this.timerInterval = null;
     this.cursorRef = null;
-
-    let pMax = 200 // Maximum distance
+    this.numTrees = 0;  // Number of trees in the circle
+    this.treeRadius = 20;  // Radius of tree circle
+    this.bounceHeight = 1.5; // Height above the ground for a DrongO to bounce
+    this.treeHeightScale = 2;
+    this.drongoScale = 0.04;
+    this.accelRate = 20
+    this.rotAccelRate = 60
+    
     let rMax = 300 // Maximum rotation rate
     this.limits = [
       {
-        p: [-pMax, pMax],
+        p: [-this.pMax, this.pMax],
         r: [-rMax, rMax]
       }, {
-        p: [5, pMax],
+        p: [this.bounceHeight, this.pMax],
         r: [-rMax, rMax]
       }, {
-        p: [-pMax, pMax],
+        p: [-this.pMax, this.pMax],
         r: [-rMax, rMax]
       }
     ]
@@ -40,7 +47,7 @@ export default class App extends React.Component {
         visible: true,
         xyz: [0, 0, 0].map((y,i) => {
           return {
-            p: i==1 ? Math.random()*100+5 : (Math.random()-0.5)*100,
+            p: i==1 ? Math.random()*this.pMax+5 : (Math.random()-0.5)*this.pMax,
             d2p: 0,
             r: Math.random()*360,
             d2r: 0
@@ -69,10 +76,8 @@ export default class App extends React.Component {
   }
 
   stepDrongoState(state, limits) {
-    let rate = 30
-    let { x: p, d2x: d2p } = this.stepAccel(state.p, state.d2p, rate, limits.p)
-    let rotRate = 15
-    let { x: r, d2x: d2r } = this.stepAccel(state.r, state.d2r, rotRate, limits.r)
+    let { x: p, d2x: d2p } = this.stepAccel(state.p, state.d2p, this.accelRate, limits.p)
+    let { x: r, d2x: d2r } = this.stepAccel(state.r, state.d2r, this.rotAccelRate, limits.r)
     return {
       ...state,
       p,
@@ -108,7 +113,6 @@ export default class App extends React.Component {
 
   componentWillUnmount() {
     clearTimeout(this.resetTimeout)
-    this.stopGame()
   }
 
   getCount() {
@@ -128,13 +132,13 @@ export default class App extends React.Component {
       }
     })
     if (this.getCount() == 0) {
+      this.stopGame()
       clearTimeout(this.resetTimeout);
       this.resetTimeout = setTimeout(() => this.resetGame(), this.resetWaitPeriod);
     }
   }
   
   resetGame() {
-      this.stopGame()
       this.setState(this.getInitialState())
       this.startGame();
   }
@@ -159,10 +163,13 @@ export default class App extends React.Component {
   render() {
     let elapsedTime = this.finalTime || this.getElapsedTime();
     return (
-      <Scene>
+      <Scene stats>
         <a-assets>
           <a-asset-item id="drongo-obj" src="assets/drongo.obj"></a-asset-item>
           <a-asset-item id="drongo-mtl" src="assets/drongo.mtl"></a-asset-item>
+          <a-asset-item id="tree-model" src="assets/tree/model.dae"></a-asset-item>
+          <img id="grass-texture" src="assets/grass.jpg"></img>
+          <img id="sky-texture" src="assets/sky.jpg"></img>
         </a-assets>
         <Entity position="0 0 0">
           <Entity primitive="a-camera" look-controls-enabled wasd-controls-enabled>
@@ -184,14 +191,20 @@ export default class App extends React.Component {
             </Entity>
           </Entity>
         </Entity>
-        <Entity primitive="a-circle" position="0 0 0" rotation="-90 0 0" color="#86DC2B" radius="2000"></ Entity>
+        {this.numTrees && Array.apply(null, Array(this.numTrees)).map((d, i) => <Entity 
+          collada-model="#tree-model"
+          key={`tree-${i}`}
+          position={`${this.treeRadius*Math.cos(i/this.numTrees*2*Math.PI)} 0 ${this.treeRadius*Math.sin(i/this.numTrees*2*Math.PI) + 10}`}
+          scale={`1 ${this.treeHeightScale} 1`}
+          ></Entity>)}
+        <Entity primitive="a-plane" position="0 0 0" rotation="-90 0 0" material="src: #grass-texture; repeat: 10 10" height="2000" width="2000"></ Entity>
         <Entity primitive="a-circle" position="0 0.01 0" rotation="-90 0 0" color="red" radius="1"
           className="reset-button"
           events={{
             click: () => this.resetGame()
           }}
         ></ Entity>
-        <Entity primitive="a-sky" color="rgb(175,227,254)"></Entity>
+        <Entity primitive="a-sky" material="src: #sky-texture"></Entity>
         {
           this.state.drongoStates.map((s, i) => {
             if (!s.visible) { return null }
@@ -206,7 +219,7 @@ export default class App extends React.Component {
               position={`${p[0].p} ${p[1].p} ${p[2].p}`}
               rotation={`${p[0].r} ${p[1].r} ${p[2].r}`}
               obj-model="obj:#drongo-obj; mtl:#drongo-mtl"
-              scale="0.2 0.2 0.2"
+              scale={`${this.drongoScale} ${this.drongoScale} ${this.drongoScale}`}
               ></Entity>
           })
         }
