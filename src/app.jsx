@@ -20,7 +20,7 @@ export default class App extends React.Component {
     this.treeRadius = 20;  // Radius of tree circle
     this.bounceHeight = 1.5; // Height above the ground for a DrongO to bounce
     this.treeHeightScale = 2;
-    this.drongoScale = 0.04;
+    this.drongoScale = 0.06;
     this.accelRate = 15
     this.rotAccelRate = 60
     
