@@ -197,7 +197,7 @@ export default class App extends React.Component {
           position={`${this.treeRadius*Math.cos(i/this.numTrees*2*Math.PI)} 0 ${this.treeRadius*Math.sin(i/this.numTrees*2*Math.PI) + 10}`}
           scale={`1 ${this.treeHeightScale} 1`}
           ></Entity>)}
-        <Entity primitive="a-plane" position="0 0 0" rotation="-90 0 0" material="src: #grass-texture; repeat: 10 10n" height="2000" width="2000"></ Entity>
+        <Entity primitive="a-plane" position="0 0 0" rotation="-90 0 0" material="src: #grass-texture; repeat: 400 400" height="2000" width="2000"></ Entity>
         <Entity primitive="a-circle" position="0 0.01 0" rotation="-90 0 0" color="red" radius="1"
           className="reset-button"
           events={{
