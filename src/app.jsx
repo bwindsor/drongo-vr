@@ -132,7 +132,7 @@ export default class App extends React.Component {
   }
 
   handleClick(drongoIndex) {
-    if (!this.state.isPlaying) { return }
+    if (!this.state.isPlaying || this.state.elapsedTime < 0) { return }
     this.setState(prevState => {
       let newStates = prevState.drongoStates
       newStates[drongoIndex] = {
