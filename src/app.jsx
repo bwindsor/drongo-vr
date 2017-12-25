@@ -21,7 +21,7 @@ export default class App extends React.Component {
     this.bounceHeight = 1.5; // Height above the ground for a DrongO to bounce
     this.treeHeightScale = 2;
     this.drongoScale = 0.04;
-    this.accelRate = 20
+    this.accelRate = 15
     this.rotAccelRate = 60
     
     let rMax = 300 // Maximum rotation rate
@@ -161,7 +161,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    let elapsedTime = this.finalTime || this.getElapsedTime();
+    let elapsedTime = this.state.finalTime || this.getElapsedTime();
     return (
       <Scene>
         <a-assets>
