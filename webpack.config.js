@@ -6,7 +6,7 @@ module.exports = {
 
     // Output the js bundle to the dist folder
     output: {
-        filename: "bundle.js",
+        filename: "dist/bundle.js",
         path: __dirname + "/dist",
         publicPath: "/dist"
     },
@@ -37,7 +37,7 @@ module.exports = {
 
     plugins: [
         new CopyWebpackPlugin([
-            //{ from: 'index.html' }
+            { from: 'index.html' }
         ])
     ],
 

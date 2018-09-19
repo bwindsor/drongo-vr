@@ -1,0 +1,25 @@
+language: node_js
+sudo: false  # Means will run in Travis's docker container - faster
+
+cache:
+  directories:
+    - "node_modules"
+
+# Deploy key
+env:
+  global:
+    secure: KlKlPQjEr9qah4HEDqtW2bN7Ptndl5h+O6c+JVulJAY3Gf00YFG39FO0awqO+i9kaRoziGa2d7JknpB25uKmkVxQjJ/2p3ZTXGeKm0rJN804uGmaLuO8zZDu4vHjqpupSRPaNz96wCOMOfX7WnyvjxsLxp0hRM1OHwEVfKbr1564g0T+KZVZ+bBEG449E0i4+/MoPuIH5cbhgVoMlllXfaYMWFwlJSmHLxZrgdKn+KXXu0XApYuce+T8vRS7ZF+zjvNcoE+5y31zzhm+CnrYnmvxpfjnF4iIRvh6ljk8VkzRgtgnb0RzR5N6WDQ4O9EJFCL4+TX1QdC9rJkj2D0XQ4NmVjK8LnQkM761s7vRtMp/ku9Zkm1M8gL5ftic/jnkWgAw9GTqQLOvdv4rhufFod5LAeGCXZ7U02pdii30yTsx+CBsAfSEszBSsyhFwpgntY80hxcCITKWnD3v0bxcYlxCJE8wVIM5EZ5I7Lmhon/sP0/loTewi8GXsYMD4okODUc0xMNf7up2WT476ova3hCL3g7tGx2NLE5Ee2te3N8sb3M+qI71+dzAB7gPRuETWfyqXTrxOH6+HvXtRtMubiSf3WPjXElsq5GgZDdPlpCSaoQa7opsvMAjSP42bDWsJrJeugKUU+AbfoSG9ycXXi1izS2IQE2cKFdZ/O3yQQ==
+
+# Run build (all branches)
+script: npm run build
+
+# Deploy to publishing branch (master only)
+deploy:
+  provider: pages
+  local-dir: dist
+  target-branch: gh-pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true  # Keep deployed site history
+  on:
+    branch: master
