@@ -8,7 +8,7 @@ module.exports = {
     output: {
         filename: "dist/bundle.js",
         path: __dirname + "/dist",
-        publicPath: "/dist"
+        publicPath: "/"
     },
 
     // Enable sourcemaps for debugging webpack's output.

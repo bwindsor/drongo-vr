@@ -25,8 +25,8 @@
   },
   "dependencies": {
     "@tweenjs/tween.js": "^17.2.0",
-    "aframe": "^0.7.1",
-    "aframe-react": "^4.3.0",
+    "aframe": "^0.8.2",
+    "aframe-react": "^4.4.0",
     "gsap": "^1.20.3",
     "react": "^16.1.1",
     "react-dom": "^16.1.1"
