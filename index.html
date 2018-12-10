@@ -4,6 +4,10 @@
     <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
     <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+
+    <script src="https://cdn.rawgit.com/delapuente/aframe-sharedspace-component/master/dist/aframe-sharedspace-component.min.js"></script>
+    <script src="https://rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
     <script>
         var gsap = { TweenMax };
@@ -12,6 +16,10 @@
 
 <body>
     <div id="main"></div>
+    <template id="avatar-template">
+        <a-sphere radius="1" color="#0000ff"></a-sphere>
+    </template>
+    
     <script src="./dist/bundle.js"></script>
 </body>
 

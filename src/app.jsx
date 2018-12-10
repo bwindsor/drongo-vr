@@ -163,6 +163,7 @@ export default class App extends React.Component {
   render() {
     let elapsedTime = this.state.finalTime || this.getElapsedTime();
     return (
+      <div>
       <Scene>
         <a-assets>
           <a-asset-item id="drongo-obj" src="assets/drongo.obj"></a-asset-item>
@@ -171,6 +172,13 @@ export default class App extends React.Component {
           <img id="grass-texture" src="assets/grass.jpg"></img>
           <img id="sky-texture" src="assets/sky.jpg"></img>
         </a-assets>
+        <Entity sharedspace="room: bwindsor-12345678" avatars="template: #avatar-template" events={{
+          'enterparticipant': function (evt) {
+            var detail = evt.detail;
+            console.log(detail);
+            console.log(detail.id + 'entered with position ' + detail.position);
+          }
+        }}>
         <Entity position="0 0 0">
           <Entity primitive="a-camera" look-controls-enabled wasd-controls-enabled>
             <Entity cursor="fuse: true; fuseTimeout: 100"
@@ -223,7 +231,12 @@ export default class App extends React.Component {
               ></Entity>
           })
         }
+        </Entity>
       </Scene>
+      <template id="avatar-template">
+          <Entity primitive="a-sphere" radius="1" color="#0000ff"></Entity>
+      </template>
+      </div>
     );
   }
 }
