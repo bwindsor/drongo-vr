@@ -233,9 +233,6 @@ export default class App extends React.Component {
         }
         </Entity>
       </Scene>
-      <template id="avatar-template">
-          <Entity primitive="a-sphere" radius="1" color="#0000ff"></Entity>
-      </template>
       </div>
     );
   }
