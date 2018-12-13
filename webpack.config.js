@@ -2,11 +2,14 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     // Set the "homepage"
-    entry: "./src/index.jsx",
+    entry: {
+        bundle: "./src/index.jsx",
+        bundleviewer: "./src/viewer.jsx"
+    },
 
     // Output the js bundle to the dist folder
     output: {
-        filename: "dist/bundle.js",
+        filename: "dist/[name].js",
         path: __dirname + "/dist",
         publicPath: "/"
     },
@@ -38,6 +41,7 @@ module.exports = {
     plugins: [
         new CopyWebpackPlugin([
             { from: 'index.html' },
+            { from: 'viewer.html' },
             { from: 'assets', to: 'assets'}
         ])
     ],

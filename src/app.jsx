@@ -16,6 +16,7 @@ export default class App extends React.Component {
     this.resetTimeout = null;
     this.timerInterval = null;
     this.cursorRef = null;
+    this.sharedSpaceRef = null;
     this.numTrees = 0;  // Number of trees in the circle
     this.treeRadius = 20;  // Radius of tree circle
     this.bounceHeight = 1.5; // Height above the ground for a DrongO to bounce
@@ -38,7 +39,22 @@ export default class App extends React.Component {
       }
     ]
 
+    this.registerRotationReader()
     this.state = this.getInitialState()
+  }
+
+  registerRotationReader() {
+    // Rotation reader component
+    let reactClass = this;
+    AFRAME.registerComponent('rotation-reader', {
+      tick: function () {
+        var rotation = this.el.getAttribute('rotation');
+        reactClass.setState({cameraRotation: {
+          el: rotation.x * Math.PI / 180,
+          az: rotation.y * Math.PI / 180
+        }})
+      }
+    });
   }
 
   getInitialState() {
@@ -60,7 +76,8 @@ export default class App extends React.Component {
       drongoStates: drongoStates,
       startTime: new Date().getTime(),
       isPlaying: false,
-      finalTime: null
+      finalTime: null,
+      cameraRotation: null
     }
   }
 
@@ -89,6 +106,21 @@ export default class App extends React.Component {
 
   componentDidMount() {
     this.startGame()
+  }
+
+  componentDidUpdate(prevState) {
+    if (this.sharedSpaceRef.components.sharedspace.isConnected()) {
+      this.sharedSpaceRef.components.sharedspace.send('*', {
+        drongoStates: this.state.drongoStates.map(s => {
+          let p = s.xyz
+          return {
+            ...s,
+            xyz: [p[0].p, p[1].p, p[2].p, p[0].r, p[1].r, p[2].r]
+          }}),
+        cameraRotation: this.state.cameraRotation,
+        elapsedTime: this.state.finalTime || this.getElapsedTime()
+      });
+    }
   }
 
   startGame() {
@@ -156,6 +188,11 @@ export default class App extends React.Component {
     });
   }
 
+  handleSharedSpaceRef(node) {
+    if (!node) { return }
+    this.sharedSpaceRef = node;
+  }
+
   getElapsedTime() {
    return (new Date().getTime() - this.state.startTime - this.initialWaitPeriod) / 1000;
   }
@@ -163,7 +200,6 @@ export default class App extends React.Component {
   render() {
     let elapsedTime = this.state.finalTime || this.getElapsedTime();
     return (
-      <div>
       <Scene>
         <a-assets>
           <a-asset-item id="drongo-obj" src="assets/drongo.obj"></a-asset-item>
@@ -172,15 +208,17 @@ export default class App extends React.Component {
           <img id="grass-texture" src="assets/grass.jpg"></img>
           <img id="sky-texture" src="assets/sky.jpg"></img>
         </a-assets>
-        <Entity sharedspace="room: bwindsor-12345678" avatars="template: #avatar-template" events={{
+        <Entity sharedspace="room: bwindsor-12345678" events={{
           'enterparticipant': function (evt) {
             var detail = evt.detail;
             console.log(detail);
             console.log(detail.id + 'entered with position ' + detail.position);
           }
-        }}>
+        }}
+        _ref={node => this.handleSharedSpaceRef(node)}
+        >
         <Entity position="0 0 0">
-          <Entity primitive="a-camera" look-controls-enabled wasd-controls-enabled>
+          <Entity primitive="a-camera" rotation-reader look-controls-enabled wasd-controls-enabled>
             <Entity cursor="fuse: true; fuseTimeout: 100"
               raycaster="objects: .drongo"
               position="0 0 -1"
@@ -233,7 +271,6 @@ export default class App extends React.Component {
         }
         </Entity>
       </Scene>
-      </div>
     );
   }
 }
